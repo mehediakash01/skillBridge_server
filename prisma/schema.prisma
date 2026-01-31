@@ -40,19 +40,24 @@ model User {
 
   tutorProfile TutorProfile?
   bookings     Booking[]
+
+  @@index([name])
 }
 
 model TutorProfile {
-  id             Int            @id @default(autoincrement())
+  id             Int             @id @default(autoincrement())
   bio            String
   hourlyRate     Decimal
-  averageRate    Decimal        @default(0.00)
+  averageRate    Decimal         @default(0.00)
   experience     Int
-  studentId      Int            @unique
-  Student        User           @relation(fields: [studentId], references: [id])
+  studentId      Int             @unique
+  Student        User            @relation(fields: [studentId], references: [id])
   bookings       Booking[]
   availabilities Availability[]
-  tutorSubjects  TutorSubjects?
+  tutorSubjects  TutorSubjects[]
+
+  @@index([hourlyRate])
+  @@index([averageRate])
 }
 
 model Booking {
@@ -66,6 +71,8 @@ model Booking {
   Student    User          @relation(fields: [studentId], references: [id])
   Tutor      TutorProfile  @relation(fields: [tutorId], references: [id])
   reviews    Reviews[]
+
+  @@index([totalPrice])
 }
 
 model Availability {
@@ -75,6 +82,8 @@ model Availability {
   startTime DateTime
   endTime   DateTime
   Tutor     TutorProfile @relation(fields: [tutorId], references: [id])
+
+  @@index([dayOfWeek, startTime, endTime])
 }
 
 model Category {
@@ -84,10 +93,12 @@ model Category {
 }
 
 model TutorSubjects {
-  tutorId    Int          @unique
+  tutorId    Int
   categoryId Int
   Tutor      TutorProfile @relation(fields: [tutorId], references: [id])
   category   Category     @relation(fields: [categoryId], references: [id])
+
+  @@id([tutorId, categoryId])
 }
 
 model Reviews {
@@ -96,4 +107,6 @@ model Reviews {
   bookingId Int
   rating    Decimal @default(0.00)
   booking   Booking @relation(fields: [bookingId], references: [id])
+
+  @@index([rating])
 }
