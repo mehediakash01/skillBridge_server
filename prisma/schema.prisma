@@ -31,26 +31,33 @@ enum Week {
 }
 
 model User {
-  id       Int     @id @default(autoincrement())
+  id       String  @id @default(uuid())
   name     String
   email    String  @unique
-  password String
+  password String?
   role     Role    @default(STUDENT)
   isBanned Boolean @default(false)
 
   tutorProfile TutorProfile?
   bookings     Booking[]
 
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+
   @@index([name])
 }
 
 model TutorProfile {
-  id             Int             @id @default(autoincrement())
+  id             String          @id @default(uuid())
   bio            String
   hourlyRate     Decimal
   averageRate    Decimal         @default(0.00)
   experience     Int
-  studentId      Int             @unique
+  studentId      String          @unique
   Student        User            @relation(fields: [studentId], references: [id])
   bookings       Booking[]
   availabilities Availability[]
@@ -61,9 +68,9 @@ model TutorProfile {
 }
 
 model Booking {
-  id         Int           @id @default(autoincrement())
-  studentId  Int
-  tutorId    Int
+  id         String        @id @default(uuid())
+  studentId  String
+  tutorId    String
   totalPrice Decimal
   startTime  DateTime
   endTime    DateTime
@@ -76,8 +83,8 @@ model Booking {
 }
 
 model Availability {
-  id        Int          @id @default(autoincrement())
-  tutorId   Int
+  id        String       @id @default(uuid())
+  tutorId   String
   dayOfWeek Week
   startTime DateTime
   endTime   DateTime
@@ -93,20 +100,65 @@ model Category {
 }
 
 model TutorSubjects {
-  tutorId    Int
+  tutorId    String
   categoryId Int
-  Tutor      TutorProfile @relation(fields: [tutorId], references: [id])
-  category   Category     @relation(fields: [categoryId], references: [id])
+  Tutor      TutorProfile @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+  category   Category     @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   @@id([tutorId, categoryId])
 }
 
 model Reviews {
-  id        Int     @id @default(autoincrement())
+  id        String  @id @default(uuid())
   comment   String
-  bookingId Int
+  bookingId String
   rating    Decimal @default(0.00)
   booking   Booking @relation(fields: [bookingId], references: [id])
 
   @@index([rating])
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([userId])
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
 }
