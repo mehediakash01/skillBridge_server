@@ -1,3 +1,4 @@
+
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -31,12 +32,12 @@ enum Week {
 }
 
 model User {
-  id       String  @id @default(uuid())
+  id       String   @id @default(uuid())
   name     String
-  email    String  @unique
+  email    String   @unique
   password String?
-  role     Role    @default(STUDENT)
-  isBanned Boolean @default(false)
+  role     Role?    @default(STUDENT)
+  isBanned Boolean? @default(false)
 
   tutorProfile TutorProfile?
   bookings     Booking[]
@@ -49,6 +50,7 @@ model User {
   accounts      Account[]
 
   @@index([name])
+  @@map("user")
 }
 
 model TutorProfile {
@@ -131,6 +133,7 @@ model Session {
 
   @@unique([token])
   @@index([userId])
+  @@map("session")
 }
 
 model Account {
@@ -150,6 +153,7 @@ model Account {
   updatedAt             DateTime  @updatedAt
 
   @@index([userId])
+  @@map("account")
 }
 
 model Verification {
@@ -161,4 +165,5 @@ model Verification {
   updatedAt  DateTime @updatedAt
 
   @@index([identifier])
+  @@map("verification")
 }
