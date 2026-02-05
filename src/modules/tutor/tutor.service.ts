@@ -1,3 +1,4 @@
+import { Week } from "../../../generated/prisma/enums.js";
 import { prisma } from "../../lib/prisma.js";
 
 const createOrUpdateUser = async (userId:string,
@@ -44,8 +45,20 @@ const getTutorProfileById = async (userId:string)=>{
     })
 
 }
+// update tutor availability
+type AvailabilitySlotInput = {
+  dayOfWeek: Week;
+  startTime: string;
+  endTime: string;
+};
+
+const updateTutorAvailability = async(tutorId:string, slots:AvailabilitySlotInput[])=>{
+    
+
+}
 
 export const tutorService = {
     createOrUpdateUser,
-    getTutorProfileById
+    getTutorProfileById,
+    updateTutorAvailability
 }

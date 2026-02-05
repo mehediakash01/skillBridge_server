@@ -3,7 +3,7 @@ import catchAsync from "../../utils/catchAsync.js"
 import sendResponse from "../../utils/sendResponse.js"
 import { tutorService } from "./tutor.service.js"
 
-
+// create tutor profile
 const createTutor = catchAsync(
     async(req:Request,res:Response)=>{
         const user = req.user;
@@ -27,7 +27,7 @@ sendResponse(res,{
 }
 
 )
-
+// get tutor profile
 const getMyProfile = catchAsync(
     async(req:Request,res:Response)=>{
         const user = req.user;
@@ -46,6 +46,29 @@ const getMyProfile = catchAsync(
     }
 )
 
+// update tutors availability
+
+const updateTutorAvailability = catchAsync(
+
+    async(req:Request,res:Response)=>{
+
+        const user = req.user;
+        const {slots} = req.body;
+        if (!user){
+             throw new Error("User not authenticated");
+        }
+        const {id} = user;
+        const result = await tutorService.updateTutorAvailability( id,slots)
+
+        sendResponse(res,{
+            success:true,
+            statusCode:200,
+            message:"tutor set up availability successful",
+            data:result
+        })
+    }
+)
+
 export const tutorController = {
-    createTutor, getMyProfile
+    createTutor, getMyProfile,updateTutorAvailability
 }
