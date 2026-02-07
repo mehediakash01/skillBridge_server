@@ -7,6 +7,8 @@ import { createTutor } from "../modules/tutor/tutor.router.js";
 import { bookingRouter } from "../modules/booking/booking.router.js";
 import { userReview } from "../modules/reviews/review.router.js";
 import { adminRouter } from "../modules/admin/admin.router.js";
+import { categoryRoutes } from "../modules/category/category.router.js";
+
 
 
 const app:Application = express()
@@ -29,6 +31,7 @@ app.use('/api/bookings',bookingRouter)
 app.use("/api/reviews",userReview)
 // admin routes
 app.use("/api/admin/users",adminRouter)
+app.use("/api/categories",categoryRoutes)
 app.get('/',(req,res)=>{
     res.send("Ronaldo is the goat")
 })
