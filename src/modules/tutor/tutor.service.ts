@@ -169,33 +169,58 @@ const updateTutorAvailability = async(tutorUserId:string, slots:AvailabilitySlot
 }
 
 // getting all tutor data 
-const getAllTutors = async () => {
-  const tutors = await prisma.tutorProfile.findMany({
+const getAllTutors = async (query: any) => {
+  const {
+    page = 1,
+    limit = 10,
+    minRate,
+    maxRate,
+    experience,
+    sortBy = "createdAt",
+    sortOrder = "desc",
+  } = query
+
+  const skip = (Number(page) - 1) * Number(limit)
+
+  const where: any = {}
+
+  if (experience) {
+    where.experience = Number(experience)
+  }
+
+  if (minRate || maxRate) {
+    where.hourlyRate = {
+      gte: minRate ? Number(minRate) : undefined,
+      lte: maxRate ? Number(maxRate) : undefined,
+    }
+  }
+
+  const result = await prisma.tutorProfile.findMany({
+    where,
     include: {
-      Student: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          image: true,
-        },
-      },
-      tutorSubjects: {
-        include: {
-          category: true,
-        },
-      },
+      Student: true,
+    },
+    skip,
+    take: Number(limit),
+    orderBy: {
+      [sortBy]: sortOrder,
     },
   })
 
-  return tutors.map((tutor) => ({
-    ...tutor,
-    hourlyRate: Number(tutor.hourlyRate),
-    averageRate: Number(tutor.averageRate),
-  }))
+  const total = await prisma.tutorProfile.count({ where })
+
+  return {
+    meta: {
+      total,
+      page: Number(page),
+      limit: Number(limit),
+    },
+    data: result,
+  }
 }
 
-// getting all tutor data 
+
+// getting  tutor details by id
 const getTutorByID = async (id: string) => {
   const tutor = await prisma.tutorProfile.findUnique({
     where: {

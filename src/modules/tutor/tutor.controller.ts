@@ -28,17 +28,18 @@ sendResponse(res,{
 
 )
 // get all tutors
-const getAllTutors = catchAsync(async(req:Request,res:Response)=>{
-    
-    const result = await tutorService.getAllTutors()
-    sendResponse(res,{
-        statusCode:200,
-        success:true,
-        message:"retrieve all tutor successfully",
-        data:result
-    })
+const getAllTutors = catchAsync(async (req, res) => {
+  const result = await tutorService.getAllTutors(req.query)
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "retrieve all tutor successfully",
+    data: result,
+  })
 })
-// get all tutors
+
+// get  tutors by id
 const getTutorById = catchAsync(async(req:Request,res:Response)=>{
     const tutorId = req.params!.id;
   
