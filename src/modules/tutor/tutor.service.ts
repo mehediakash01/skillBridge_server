@@ -1,36 +1,58 @@
 import { Week } from "../../../generated/prisma/enums.js";
 import { prisma } from "../../lib/prisma.js";
-// create or update tutor profile
-const createOrUpdateUser = async (userId:string,
+// ── Create or update tutor profile ──
 
-   payload: {
+const createOrUpdateUser = async (
+  userId: string,
+  payload: {
     bio: string;
     hourlyRate: number;
     experience: number;
+    categoryIds?: number[]; 
   }
-)=>{
+) => {
+  const { bio, hourlyRate, experience, categoryIds = [] } = payload;
 
-    return prisma.tutorProfile.upsert({
-        where:{
-            studentId:userId
-        },
-        update:{
-            
-            bio:payload.bio,
-            hourlyRate:payload.hourlyRate,
-            experience:payload.experience
-        },
-        create:{
-            studentId:userId,
-            bio:payload.bio,
-            hourlyRate:payload.hourlyRate,
-            experience:payload.experience
-        }
-    })
+  // 1. Upsert the core profile
+  const tutorProfile = await prisma.tutorProfile.upsert({
+    where: { studentId: userId },
+    update: { bio, hourlyRate, experience },
+    create: { studentId: userId, bio, hourlyRate, experience },
+  });
 
+  
+  if (categoryIds.length > 0) {
+    await prisma.$transaction([
+      // Remove all existing subject links
+      prisma.tutorSubjects.deleteMany({
+        where: { tutorId: tutorProfile.id },
+      }),
+      // Insert new subject links
+      prisma.tutorSubjects.createMany({
+        data: categoryIds.map((categoryId) => ({
+          tutorId: tutorProfile.id,
+          categoryId,
+        })),
+        skipDuplicates: true,
+      }),
+    ]);
+  } else {
+    // If no categories sent, just clear them
+    await prisma.tutorSubjects.deleteMany({
+      where: { tutorId: tutorProfile.id },
+    });
+  }
 
-
-}
+  // 3. Return profile with subjects included
+  return prisma.tutorProfile.findUnique({
+    where: { id: tutorProfile.id },
+    include: {
+      tutorSubjects: {
+        include: { category: true },
+      },
+    },
+  });
+};
 // getting tutors profile by id
 const getTutorProfileById = async (id: string) => {
   const tutor = await prisma.tutorProfile.findUnique({
