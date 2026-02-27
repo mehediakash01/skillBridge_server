@@ -257,7 +257,7 @@ const getTutorByID = async (id: string) => {
 // get tutors own availability
 export const getTutorAvailability = async (tutorUserId: string) => {
   const tutorProfile = await prisma.tutorProfile.findUnique({
-    where: { id: tutorUserId },
+    where: { studentId: tutorUserId },
   });
 
   if (!tutorProfile) {
