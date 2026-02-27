@@ -58,7 +58,6 @@ const createBooking = async (studentId: string, payload: BookingPayload) => {
     throw new Error("Tutor not available at this time")
   }
 
-  // ... rest of the function unchanged
   // 2️ Check booking conflicts 
   const conflict = await prisma.booking.findFirst({
     where: {
@@ -154,9 +153,9 @@ const getTutorBooking = async(tutorId:string)=>{
 // update booking status
 const completeBooking = async (bookingId: string, tutorUserId: string) => {
   // 1 Find tutor profile
-  const tutorProfile = await prisma.tutorProfile.findUnique({
-    where: { id: tutorUserId },
-  });
+const tutorProfile = await prisma.tutorProfile.findUnique({
+  where: { studentId: tutorUserId }, 
+})
   
 
   if (!tutorProfile) {
@@ -248,10 +247,9 @@ const updateMeetingLink = async (
   tutorUserId: string,
   meetingLink: string
 ) => {
-  const tutorProfile = await prisma.tutorProfile.findUnique({
-    where: { id: tutorUserId },
-  });
-
+ const tutorProfile = await prisma.tutorProfile.findUnique({
+  where: { studentId: tutorUserId },
+})
   if (!tutorProfile) throw new Error("Tutor profile not found");
 
   const booking = await prisma.booking.findUnique({ where: { id: bookingId } });
