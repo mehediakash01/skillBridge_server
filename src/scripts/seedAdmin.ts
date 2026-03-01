@@ -25,13 +25,13 @@ const seedAdmin =async ()=>{
             throw new Error("User already exists");
         }
 
-        const signUpAdmin =await fetch("http://localhost:3000/api/auth/sign-up/email",{
+        const signUpAdmin =await fetch("https://skill-bridge-client-1h8j.vercel.app/api/auth/sign-up/email",{
 
 
             method:"POST",
             headers:{
                 "Content-Type":"application/json",
-                 "Origin": "http://localhost:3000"
+                 "Origin": "https://skill-bridge-client-1h8j.vercel.app"
             },
             body:JSON.stringify(AdminData)
 

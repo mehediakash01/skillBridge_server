@@ -32,7 +32,7 @@ var auth = betterAuth({
   }),
   baseURL: process.env.BETTER_AUTH_URL || "http://localhost:5000",
   trustedOrigins: [
-    "http://localhost:3000",
+    "https://skill-bridge-client-1h8j.vercel.app",
     "http://localhost:5000"
   ],
   user: {
