@@ -17,7 +17,7 @@ app.use(globalErrorHandler);
 app.use(express.json())
 app.use(cors({
   
-  origin:process.env.APP_URL ||"http://localhost:5000",
+  origin:process.env.APP_URL ||"https://skill-bridge-client-1h8j.vercel.app",
     credentials:true
 }
   

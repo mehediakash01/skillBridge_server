@@ -17,10 +17,10 @@ export const auth = betterAuth({
     database: prismaAdapter(prisma, {
         provider: "postgresql", 
     }),
-    baseURL: process.env.BETTER_AUTH_URL || "http://localhost:5000",
+    baseURL: process.env.BETTER_AUTH_URL || "https://skill-bridge-server-tau.vercel.app",
         trustedOrigins: [
         "https://skill-bridge-client-1h8j.vercel.app",
-        "http://localhost:5000"
+        "https://skill-bridge-server-tau.vercel.app"
     ],
      user: {
         additionalFields: {

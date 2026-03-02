@@ -311,7 +311,7 @@ npm run dev
 ```bash
 npm run dev
 ```
-Server runs on: `http://localhost:5000`
+Server runs on: `https://skill-bridge-server-tau.vercel.app`
 
 ### Production Build
 ```bash
