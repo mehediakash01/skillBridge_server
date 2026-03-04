@@ -22,6 +22,17 @@ export const auth = betterAuth({
         "https://skill-bridge-client-1h8j.vercel.app",
         "https://skill-bridge-server-tau.vercel.app"
     ],
+        advanced: {
+      crossSubDomainCookies: {
+        enabled: false,
+      },
+      defaultCookieAttributes: {
+        secure: true,
+        httpOnly: true,
+        sameSite: "none", 
+        partitioned: true,
+      },
+    },
      user: {
         additionalFields: {
             role: {

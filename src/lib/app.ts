@@ -16,13 +16,14 @@ const app:Application = express()
 app.use(globalErrorHandler);
 app.use(express.json())
 app.use(cors({
-  
-  origin:process.env.APP_URL ||"https://skill-bridge-client-1h8j.vercel.app",
-    credentials:true
-}
-  
-   
-))
+  origin: [
+    "https://skill-bridge-client-1h8j.vercel.app",
+    "https://skill-bridge-server-tau.vercel.app"
+  ],
+  credentials: true,       
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
+}));
 app.all('/api/auth/{*any}', toNodeHandler(auth));
 // tutor routes
 app.use('/api/tutors',createTutor)
