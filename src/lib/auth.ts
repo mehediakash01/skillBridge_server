@@ -51,7 +51,104 @@ export const auth = betterAuth({
     emailAndPassword: { 
     enabled: true, 
     requireEmailVerification:true,
-    autoSignIn:false
+    autoSignIn:false,
+    sendResetPasswordEmail: async(
+      { user, url, token }: { user: { email: string; name: string }, url: string, token: string },
+      request?: Request
+    ) => {
+      const resetUrl = `${process.env.APP_URL}/reset-password?token=${token}`;
+      try {
+        const info = await transporter.sendMail({
+          from: '"SkillBridge" <skill@bridge.com>',
+          to: `${user.email}`,
+          subject: "Reset your SkillBridge password",
+          html: `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reset Your Password</title>
+</head>
+<body style="margin:0; padding:0; background-color:#f4f6f8; font-family: Arial, Helvetica, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center" style="padding: 40px 10px;">
+        <table width="100%" max-width="600px" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:8px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.08);">
+          
+          <!-- Header -->
+          <tr>
+            <td style="background:#4f46e5; padding:24px; text-align:center;">
+              <h1 style="color:#ffffff; margin:0; font-size:24px;">Skill Bridge</h1>
+            </td>
+          </tr>
+
+          <!-- Content -->
+          <tr>
+            <td style="padding:32px;">
+              <h2 style="margin-top:0; color:#111827;">Reset your password</h2>
+
+              <p style="color:#4b5563; font-size:16px; line-height:1.6;">
+                We received a request to reset the password for your <strong>SkillBridge</strong> account.
+                Click the button below to choose a new password.
+              </p>
+
+              <!-- Button -->
+              <div style="text-align:center; margin:32px 0;">
+                <a
+                  href="${resetUrl}"
+                  target="_blank"
+                  style="
+                    background:#4f46e5;
+                    color:#ffffff;
+                    padding:14px 28px;
+                    text-decoration:none;
+                    border-radius:6px;
+                    font-size:16px;
+                    font-weight:bold;
+                    display:inline-block;
+                  "
+                >
+                  Reset Password
+                </a>
+              </div>
+
+              <p style="color:#6b7280; font-size:14px; line-height:1.6;">
+                If the button doesn't work, copy and paste this link into your browser:
+              </p>
+
+              <p style="word-break:break-all; font-size:14px;">
+                <a href="${resetUrl}" style="color:#4f46e5;">${resetUrl}</a>
+              </p>
+
+              <p style="color:#9ca3af; font-size:13px; margin-top:32px;">
+                This link will expire in <strong>1 hour</strong>. If you didn't request a password reset,
+                you can safely ignore this email — your password will not be changed.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background:#f9fafb; padding:16px; text-align:center; font-size:12px; color:#9ca3af;">
+              © ${new Date().getFullYear()} Skill Bridge. All rights reserved.
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+`
+        });
+        console.log("Password reset email sent:", info.messageId);
+      } catch (err) {
+        console.log("Password reset email failed", err);
+        throw err;
+      }
+    },
   }, 
     socialProviders: {
         google: { 
