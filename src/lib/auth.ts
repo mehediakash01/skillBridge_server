@@ -52,10 +52,11 @@ export const auth = betterAuth({
     enabled: true, 
     requireEmailVerification:true,
     autoSignIn:false,
-    sendResetPasswordEmail: async(
-      { user, url, token }: { user: { email: string; name: string }, url: string, token: string },
+    sendResetPassword: async(
+      payload: { user: { email: string; name: string }; url: string; token: string },
       request?: Request
     ) => {
+      const { user, token } = payload;
       const resetUrl = `${process.env.APP_URL}/reset-password?token=${token}`;
       try {
         const info = await transporter.sendMail({
