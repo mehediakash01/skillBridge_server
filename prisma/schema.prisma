@@ -56,6 +56,12 @@ model Availability {
 model Category {
   id            Int             @id @default(autoincrement())
   categoryName  String
+  description   String?
+  icon          String?
+  isTrending    Boolean         @default(false)
+  learnerCount  Int             @default(0)
+  startingPrice Decimal?
+  tags          String[]        @default([])
   tutorSubjects TutorSubjects[]
 }
 
