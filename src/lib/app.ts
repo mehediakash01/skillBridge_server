@@ -18,6 +18,8 @@ const allowedOrigins = [
   process.env.APP_URL,
   "https://skill-bridge-client-sage.vercel.app",
   "https://skill-bridge-client-ex6c.vercel.app",
+  "http://localhost:3000",
+  "http://localhost:5000"
 ].filter(Boolean) as string[];
 
 app.use(cors({
