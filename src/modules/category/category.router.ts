@@ -19,6 +19,12 @@ router.post(
   categoryController.createCategory
 );
 
+router.patch(
+  "/:id",
+  sessionAuth(UserRole.ADMIN),
+  categoryController.updateCategory
+);
+
 router.delete(
   "/:id",
   sessionAuth(UserRole.ADMIN),
