@@ -9,7 +9,6 @@ datasource db {
 
 model TutorProfile {
   id               String          @id @default(uuid())
-  userId           String          @unique
   headline         String? // Professional hook (e.g., "Senior Software Engineer @ TechCorp | 5yrs Teaching Next.js")
   bio              String? // Short bio
   bio_long         String? // Rich text - detailed teaching methodology

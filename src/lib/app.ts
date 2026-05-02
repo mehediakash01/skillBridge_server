@@ -9,6 +9,7 @@ import { userReview } from "../modules/reviews/review.router.js";
 import { adminRouter } from "../modules/admin/admin.router.js";
 import { categoryRoutes } from "../modules/category/category.router.js";
 import { availableRouter } from "../modules/availability/available.router.js";
+import { userRouter } from "../modules/user/user.router.js";
 
 
 
@@ -34,6 +35,8 @@ app.use(cors({
   credentials: true,
 }))
 app.all('/api/auth/{*any}', toNodeHandler(auth));
+// user routes
+app.use('/api/users',userRouter)
 // tutor routes
 app.use('/api/tutors',createTutor)
 // booking routes

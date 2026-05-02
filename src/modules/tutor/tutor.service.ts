@@ -2,6 +2,51 @@ import { Week } from "../../../generated/prisma/enums.js";
 import { prisma } from "../../lib/prisma.js";
 // ── Create or update tutor profile ──
 
+const LEGACY_TUTOR_PROFILE_SELECT = {
+  id: true,
+  bio: true,
+  hourlyRate: true,
+  averageRate: true,
+  experience: true,
+  studentId: true,
+  createdAt: true,
+  updatedAt: true,
+  Student: {
+    select: {
+      id: true,
+      name: true,
+      image: true,
+    },
+  },
+  tutorSubjects: {
+    include: {
+      category: true,
+    },
+  },
+  availabilities: true,
+  bookings: true,
+} as const;
+
+const SAFE_SORT_FIELDS = new Set([
+  "createdAt",
+  "updatedAt",
+  "hourlyRate",
+  "averageRate",
+  "experience",
+]);
+
+const resolveSafeSortBy = (sortBy: unknown) => {
+  if (typeof sortBy !== "string") return "createdAt";
+  return SAFE_SORT_FIELDS.has(sortBy) ? sortBy : "createdAt";
+};
+
+const resolveSafeSortOrder = (sortOrder: unknown): "asc" | "desc" => {
+  if (sortOrder === "asc" || sortOrder === "desc") {
+    return sortOrder;
+  }
+  return "desc";
+};
+
 const createOrUpdateUser = async (
   userId: string,
   payload: {
@@ -59,22 +104,7 @@ const getTutorProfileById = async (id: string) => {
     where: {
       id: id,   
     },
-    include: {
-      Student: {
-        select: {
-          id: true,
-          name: true,
-          image: true,
-        },
-      },
-      tutorSubjects: {
-        include: {
-          category: true,
-        },
-      },
-      availabilities: true,
-      bookings: true,
-    },
+    select: LEGACY_TUTOR_PROFILE_SELECT,
   })
 
   if (!tutor) return null
@@ -200,6 +230,9 @@ const getAllTutors = async (query: any) => {
     sortOrder = "desc",
   } = query
 
+  const safeSortBy = resolveSafeSortBy(sortBy)
+  const safeSortOrder = resolveSafeSortOrder(sortOrder)
+
   const skip = (Number(page) - 1) * Number(limit)
 
   const where: any = {}
@@ -217,7 +250,15 @@ const getAllTutors = async (query: any) => {
 
   const result = await prisma.tutorProfile.findMany({
     where,
-    include: {
+    select: {
+      id: true,
+      bio: true,
+      hourlyRate: true,
+      averageRate: true,
+      experience: true,
+      studentId: true,
+      createdAt: true,
+      updatedAt: true,
       Student: {
         select: {
           id: true,
@@ -234,7 +275,7 @@ const getAllTutors = async (query: any) => {
     skip,
     take: Number(limit),
     orderBy: {
-      [sortBy]: sortOrder,
+      [safeSortBy]: safeSortOrder,
     },
   })
 
@@ -257,22 +298,7 @@ const getTutorByID = async (id: string) => {
     where: {
       id: id,   
     },
-    include: {
-      Student: {
-        select: {
-          id: true,
-          name: true,
-          image: true,
-        },
-      },
-      tutorSubjects: {
-        include: {
-          category: true,
-        },
-      },
-      availabilities: true,
-      bookings: true,
-    },
+    select: LEGACY_TUTOR_PROFILE_SELECT,
   })
 
   if (!tutor) return null

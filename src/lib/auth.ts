@@ -23,8 +23,8 @@ export const auth = betterAuth({
         process.env.BETTER_AUTH_URL as string,
         "https://skill-bridge-client-sage.vercel.app",
         "https://skill-bridge-client-ex6c.vercel.app",
-        "https://localhost:3000",
-        "https://localhost:5000"
+        "http://localhost:3000",
+        "http://localhost:5000"
     ],
         advanced: {
       crossSubDomainCookies: {
