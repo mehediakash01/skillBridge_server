@@ -64,7 +64,6 @@ const getTutorProfileById = async (id: string) => {
         select: {
           id: true,
           name: true,
-          email: true,
           image: true,
         },
       },
@@ -219,7 +218,18 @@ const getAllTutors = async (query: any) => {
   const result = await prisma.tutorProfile.findMany({
     where,
     include: {
-      Student: true,
+      Student: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
+        },
+      },
+      tutorSubjects: {
+        include: {
+          category: true,
+        },
+      },
     },
     skip,
     take: Number(limit),
@@ -252,7 +262,6 @@ const getTutorByID = async (id: string) => {
         select: {
           id: true,
           name: true,
-          email: true,
           image: true,
         },
       },
