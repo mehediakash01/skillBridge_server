@@ -8,21 +8,35 @@ datasource db {
 }
 
 model TutorProfile {
-  id             String          @id @default(uuid())
-  bio            String
-  hourlyRate     Decimal
-  averageRate    Decimal         @default(0.00)
-  experience     Int
-  studentId      String          @unique
-  createdAt      DateTime        @default(now()) @db.Timestamp(6)
-  updatedAt      DateTime        @default(now()) @updatedAt @db.Timestamp(6)
-  availabilities Availability[]
-  bookings       Booking[]
-  Student        User            @relation(fields: [studentId], references: [id])
-  tutorSubjects  TutorSubjects[]
+  id               String          @id @default(uuid())
+  userId           String          @unique
+  headline         String? // Professional hook (e.g., "Senior Software Engineer @ TechCorp | 5yrs Teaching Next.js")
+  bio              String? // Short bio
+  bio_long         String? // Rich text - detailed teaching methodology
+  intro_video_url  String? // Link to 30-second YouTube/Vimeo introduction
+  badges           String[]        @default([]) // ["Verified", "Fast Responder", "Top 1%"]
+  experience_years Int? // Quantifiable professional background
+  languages        Json? // Array of objects: [{ lang: "English", level: "Native" }]
+  education        Json? // Array: [{ degree: "B.S.", field: "Computer Science", school: "MIT", year: 2020, verified: true }]
+  avatar_url       String? // High-resolution avatar
+  id_verified      Boolean         @default(false) // Verification status for ID documents
+  hourlyRate       Decimal
+  averageRate      Decimal         @default(0.00)
+  experience       Int
+  profile_draft    Json? // Draft data for unsaved changes
+  is_published     Boolean         @default(false) // Publish status for profile
+  studentId        String          @unique // Legacy field - can be deprecated
+  createdAt        DateTime        @default(now()) @db.Timestamp(6)
+  updatedAt        DateTime        @default(now()) @updatedAt @db.Timestamp(6)
+  availabilities   Availability[]
+  bookings         Booking[]
+  Student          User            @relation(fields: [studentId], references: [id])
+  tutorSubjects    TutorSubjects[]
 
   @@index([hourlyRate])
   @@index([averageRate])
+  @@index([is_published])
+  @@index([id_verified])
 }
 
 model Booking {
