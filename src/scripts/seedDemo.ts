@@ -1,9 +1,11 @@
 import { prisma } from "../lib/prisma.js";
 import { UserRole } from "../middlewares/authMiddleware.js";
+import bcrypt from "bcryptjs";
 
-// Simple password hash for demo (NOT for production)
-const simpleHash = (str: string) => {
-  return Buffer.from(str).toString("base64");
+// Hash password with bcrypt (matches better-auth credential provider)
+const hashPassword = async (password: string) => {
+  const salt = await bcrypt.genSalt(10);
+  return bcrypt.hash(password, salt);
 };
 
 const seedDemo = async () => {
@@ -34,116 +36,143 @@ const seedDemo = async () => {
       });
 
       if (existingUser) {
-        console.log(`User ${account.email} already exists. Skipping...`);
-        continue;
-      }
-
-      try {
-        // Create user directly in database
-        const newUser = await prisma.user.create({
-          data: {
-            id: `user_${account.email.split("@")[0]}_demo`,
-            name: account.name,
-            email: account.email,
-            role: account.role,
-            emailVerified: true,
-            updatedAt: new Date(),
+        console.log(`User ${account.email} already exists. Checking credentials...`);
+        
+        // Check if credential exists
+        const existingCredential = await prisma.account.findFirst({
+          where: { 
+            userId: existingUser.id,
+            providerId: "credential",
           },
         });
 
-        console.log(
-          `****${account.role} demo account created and verified****`
-        );
-        console.log(`User ID: ${newUser.id}`);
+        if (existingCredential) {
+          console.log(`Credential already exists for ${account.email}. Skipping...`);
+          continue;
+        }
+      }
 
-        // Create Account record for email authentication
-        try {
-          await prisma.account.create({
+      try {
+        // Create user if not exists
+        let newUser = existingUser;
+        if (!newUser) {
+          newUser = await prisma.user.create({
             data: {
-              id: `${newUser.id}:email`,
-              accountId: `${newUser.id}:email`,
-              providerId: "email",
-              userId: newUser.id,
-              password: simpleHash(account.password),
-              scope: "email",
+              id: `user_${account.email.split("@")[0]}_demo`,
+              name: account.name,
+              email: account.email,
+              role: account.role,
+              emailVerified: true,
               updatedAt: new Date(),
             },
           });
-          console.log("Account record created for email authentication");
-        } catch (accountErr: any) {
-          console.log("Account record may already exist or error:", accountErr.message);
+
+          console.log(
+            `****${account.role} demo account created and verified****`
+          );
+          console.log(`User ID: ${newUser.id}`);
         }
 
-        // Mark email as verified
-        const updatedUser = newUser;
+        // Hash password for credential
+        const hashedPassword = await hashPassword(account.password);
+
+        // Create Account record for credential authentication (matches better-auth credential provider)
+        try {
+          const credential = await prisma.account.create({
+            data: {
+              id: `credential_${newUser.id}`,
+              accountId: newUser.email,
+              userId: newUser.id,
+              providerId: "credential",
+              password: hashedPassword,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+          });
+          console.log(`Credential created for ${account.email} (ID: ${credential.id})`);
+        } catch (credentialErr: any) {
+          if (credentialErr.code === 'P2002') {
+            console.log(`Credential already exists for ${account.email}`);
+          } else {
+            console.error(`Error creating credential:`, credentialErr.message);
+          }
+        }
 
         // If tutor, create a complete tutor profile
         if (account.role === UserRole.TUTOR) {
-          const tutorProfile = await prisma.tutorProfile.create({
-            data: {
-              studentId: updatedUser.id, // Legacy field
-              headline: "Experienced Demo Tutor | 5+ Years | All Subjects",
-              bio: "Welcome! I'm a demo tutor here to help you test the platform. I'm experienced in teaching and ready to help with any subject.",
-              bio_long: "As a professional demo tutor, I specialize in making complex topics easy to understand. My teaching methodology focuses on interactive sessions, real-world applications, and personalized learning paths. I'm passionate about helping students achieve their goals.",
-              badges: ["Verified", "Top Responder"],
-              experience_years: 5,
-              languages: [
-                { lang: "English", level: "Native" },
-                { lang: "Spanish", level: "Fluent" },
-              ],
-              education: [
-                {
-                  degree: "B.S.",
-                  field: "Computer Science",
-                  school: "Demo University",
-                  year: 2019,
-                  verified: true,
-                },
-              ],
-              id_verified: true,
-              hourlyRate: 25,
-              averageRate: 4.9,
-              experience: 5,
-              is_published: true,
-              availabilities: {
-                create: [
-                  {
-                    dayOfWeek: "mon",
-                    startTime: "09:00",
-                    endTime: "17:00",
-                  },
-                  {
-                    dayOfWeek: "tue",
-                    startTime: "09:00",
-                    endTime: "17:00",
-                  },
-                  {
-                    dayOfWeek: "wed",
-                    startTime: "09:00",
-                    endTime: "17:00",
-                  },
-                  {
-                    dayOfWeek: "thu",
-                    startTime: "09:00",
-                    endTime: "17:00",
-                  },
-                  {
-                    dayOfWeek: "fri",
-                    startTime: "09:00",
-                    endTime: "17:00",
-                  },
-                  {
-                    dayOfWeek: "sat",
-                    startTime: "10:00",
-                    endTime: "16:00",
-                  },
-                ],
-              },
-            },
+          const existingProfile = await prisma.tutorProfile.findUnique({
+            where: { studentId: newUser.id },
           });
 
-          console.log("****Tutor profile created with full details and availabilities****");
-          console.log("Tutor Profile ID:", tutorProfile.id);
+          if (!existingProfile) {
+            const tutorProfile = await prisma.tutorProfile.create({
+              data: {
+                studentId: newUser.id,
+                headline: "Experienced Demo Tutor | 5+ Years | All Subjects",
+                bio: "Welcome! I'm a demo tutor here to help you test the platform. I'm experienced in teaching and ready to help with any subject.",
+                bio_long: "As a professional demo tutor, I specialize in making complex topics easy to understand. My teaching methodology focuses on interactive sessions, real-world applications, and personalized learning paths. I'm passionate about helping students achieve their goals.",
+                badges: ["Verified", "Fast Responder"],
+                experience_years: 5,
+                languages: [
+                  { lang: "English", level: "Native" },
+                  { lang: "Spanish", level: "Fluent" },
+                ],
+                education: [
+                  {
+                    degree: "B.S.",
+                    field: "Computer Science",
+                    school: "Demo University",
+                    year: 2019,
+                    verified: true,
+                  },
+                ],
+                id_verified: true,
+                hourlyRate: 25,
+                averageRate: 4.9,
+                experience: 5,
+                is_published: true,
+                availabilities: {
+                  create: [
+                    {
+                      dayOfWeek: "mon",
+                      startTime: "09:00",
+                      endTime: "17:00",
+                    },
+                    {
+                      dayOfWeek: "tue",
+                      startTime: "09:00",
+                      endTime: "17:00",
+                    },
+                    {
+                      dayOfWeek: "wed",
+                      startTime: "09:00",
+                      endTime: "17:00",
+                    },
+                    {
+                      dayOfWeek: "thu",
+                      startTime: "09:00",
+                      endTime: "17:00",
+                    },
+                    {
+                      dayOfWeek: "fri",
+                      startTime: "09:00",
+                      endTime: "17:00",
+                    },
+                    {
+                      dayOfWeek: "sat",
+                      startTime: "10:00",
+                      endTime: "16:00",
+                    },
+                  ],
+                },
+              },
+            });
+
+            console.log("****Tutor profile created with full details and availabilities****");
+            console.log("Tutor Profile ID:", tutorProfile.id);
+          } else {
+            console.log("Tutor profile already exists, skipping creation");
+          }
         }
       } catch (accountErr) {
         console.error(`Error creating account for ${account.email}:`, accountErr);
